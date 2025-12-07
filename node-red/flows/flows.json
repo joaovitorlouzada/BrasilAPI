@@ -1,0 +1,223 @@
+[
+    {
+        "id": "f9d4baa39b012989",
+        "type": "tab",
+        "label": "Fluxo API Brasil",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "cf5ded3017f59e77",
+        "type": "mongodb",
+        "hostname": "projetobrasilapi.or7w2si.mongodb.net",
+        "topology": "dnscluster",
+        "connectOptions": "",
+        "port": 27017,
+        "db": "ProjetoBrasilAPI",
+        "name": "MongoDB Atlas - BrasilAPI"
+    },
+    {
+        "id": "cd1edb6fd05a8061",
+        "type": "http request",
+        "z": "f9d4baa39b012989",
+        "name": "API Brasil Corretoras",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://brasilapi.com.br/api/cvm/corretoras/v1",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 560,
+        "y": 220,
+        "wires": [
+            [
+                "d4ed23e334424619"
+            ]
+        ]
+    },
+    {
+        "id": "8f7d866c41cfce50",
+        "type": "inject",
+        "z": "f9d4baa39b012989",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 250,
+        "y": 380,
+        "wires": [
+            [
+                "cd1edb6fd05a8061"
+            ]
+        ]
+    },
+    {
+        "id": "9d5d24479f53fdcd",
+        "type": "http in",
+        "z": "f9d4baa39b012989",
+        "name": "GET corretoras",
+        "url": "/corretoras",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 120,
+        "wires": [
+            [
+                "cd1edb6fd05a8061"
+            ]
+        ]
+    },
+    {
+        "id": "d4ed23e334424619",
+        "type": "function",
+        "z": "f9d4baa39b012989",
+        "name": "Processar e formatar os dados",
+        "func": "// msg.payload é um array de objetos do banco de dados (SQL Consultar)\nvar corretoras_db = msg.payload; \nvar lista_formatada = [];\n\nif (Array.isArray(corretoras_db) && corretoras_db.length > 0) {\n    \n    // Itera sobre os resultados do SQL\n    corretoras_db.forEach(function(corretora) {\n        // Formato requerido: \"${Name} - ${City}/${CNPJ}\"\n        var linha_formatada = `${corretora.nome_comercial} - ${corretora.municipio}/${corretora.cnpj}`;\n        lista_formatada.push(linha_formatada);\n    });\n\n    // O payload final é o array de strings formatadas\n    msg.payload = lista_formatada;\n\n} else {\n    msg.payload = { error: \"Nenhuma corretora encontrada no banco de dados.\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 220,
+        "wires": [
+            [
+                "c3b7a2862949d9f0"
+            ]
+        ]
+    },
+    {
+        "id": "c3b7a2862949d9f0",
+        "type": "http response",
+        "z": "f9d4baa39b012989",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1170,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "dc726a13b5a9c754",
+        "type": "http in",
+        "z": "f9d4baa39b012989",
+        "name": "GET cep",
+        "url": "/cep/:cep?",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 300,
+        "y": 660,
+        "wires": [
+            [
+                "8dae379c8f882f59"
+            ]
+        ]
+    },
+    {
+        "id": "0baecdfef7e15cc7",
+        "type": "http request",
+        "z": "f9d4baa39b012989",
+        "name": "API BrasilAPI",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://brasilapi.com.br/api/cep/v2/{{cep_a_buscar}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 730,
+        "y": 660,
+        "wires": [
+            [
+                "02702406e25a22dc"
+            ]
+        ]
+    },
+    {
+        "id": "c57c2a19bc1f02ff",
+        "type": "http response",
+        "z": "f9d4baa39b012989",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1230,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "8dae379c8f882f59",
+        "type": "function",
+        "z": "f9d4baa39b012989",
+        "name": "Preparar CEP",
+        "func": "// Este código deve estar no NOVO nó Function, APÓS o GET cep.\n\nvar cep;\n\n// 1. Tenta obter o CEP do parâmetro de rota (agora possível com /cep/:cep?)\nif (msg.req && msg.req.params && msg.req.params.cep) {\n    cep = msg.req.params.cep;\n} \n// 2. Tenta obter do query string (Campo de Entrada)\nelse if (msg.req && msg.req.query && msg.req.query.cep) {\n    cep = msg.req.query.cep;\n} \n// 3. Tenta obter do payload (se o React usar POST)\nelse if (msg.payload && msg.payload.cep) {\n    cep = msg.payload.cep;\n}\n\nif (cep) {\n    cep = cep.replace(/\\D/g, ''); // Limpa\n    \n    if (cep.length !== 8) {\n        msg.payload = { error: \"CEP inválido. Deve ter 8 dígitos.\" };\n        return null; // Envia o erro, interrompendo o fluxo\n    }\n    \n    // CRIA A VARIÁVEL QUE O NÓ HTTP REQUEST PRECISA\n    msg.cep_a_buscar = cep;\n    msg.payload = {}; // Limpa o payload para evitar problemas\n\n    // O fluxo continua para o HTTP Request\n    return msg;\n} else {\n    // Se o CEP não foi encontrado em lugar nenhum\n    msg.payload = { error: \"CEP não fornecido. Use /cep/XXXXX ou /cep?cep=XXXXX.\" };\n    return null; // Envia o erro, interrompendo o fluxo\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 660,
+        "wires": [
+            [
+                "0baecdfef7e15cc7"
+            ]
+        ]
+    },
+    {
+        "id": "02702406e25a22dc",
+        "type": "function",
+        "z": "f9d4baa39b012989",
+        "name": "Formata os dados do CEP",
+        "func": "// O msg.payload é o objeto JSON retornado pela BrasilAPI, ex:\n// { \"cep\": \"...\", \"state\": \"...\", \"city\": \"...\", ... }\n\nvar dados_cep = msg.payload;\n\n// 1. Verifica se houve erro na resposta da API\n// A BrasilAPI retorna um objeto de erro se o CEP não for encontrado ou for inválido.\nif (dados_cep && dados_cep.name === \"CepNotFoundException\") {\n    msg.payload = { \n        error: \"CEP não encontrado ou inválido.\",\n        cep: dados_cep.message \n    };\n    return msg;\n}\n\n// 2. Verifica se a resposta contém os dados essenciais\n// Se não for um erro, esperamos que os dados estejam presentes.\nif (dados_cep && dados_cep.cep && dados_cep.state) {\n    \n    // Formata o objeto para enviar ao React, selecionando campos chave\n    msg.payload = {\n        cep: dados_cep.cep,\n        estado: dados_cep.state,\n        cidade: dados_cep.city,\n        bairro: dados_cep.neighborhood || \"N/A\", // 'neighborhood' é o campo no CEP V2\n        logradouro: dados_cep.street || \"N/A\", // 'street' é o campo no CEP V2\n        servico: \"BrasilAPI\"\n    };\n\n} else {\n    // Caso a API retorne algo inesperado ou vazio, mas não o erro específico\n    msg.payload = { error: \"Resposta da API com estrutura inesperada ou incompleta.\" };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 660,
+        "wires": [
+            [
+                "c57c2a19bc1f02ff"
+            ]
+        ]
+    },
+    {
+        "id": "aae2e20b013d6ec9",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-mongodb": "0.2.5"
+        }
+    }
+]
