@@ -97,4 +97,22 @@ no Terminal do VsCode:
 
 Certifique-se de que o Node-RED esteja rodando em http://localhost:1880 antes de usar a aplicação, pois o front-end depende dos endpoints expostos por ele.
 
+## 📸 Galeria de telas
+
+---
+
+### 🟦 Tela inicial
+![Tela inicial](https://github.com/user-attachments/assets/ed33d157-ee19-4759-979e-2ee44c3422ff)
+
+---
+
+### 🟩 Catálogo de Corretoras
+![Catálogo de Corretoras](https://github.com/user-attachments/assets/770dd318-51de-4293-a020-b3d85a1ad2e0)
+
+---
+
+### 🟧 Buscador de CEP
+<img width="479" height="647" alt="image" src="https://github.com/user-attachments/assets/b36d36b8-6ab5-47b8-9ffc-e4bc552ce7db" />
+
+
 
