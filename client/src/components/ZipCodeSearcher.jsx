@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function ZipCodeSearcher() {
-  const [cepInput, setCepInput] = useState('');
+  const [cepInput, setCepInput] = useState("");
   const [address, setAddress] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mapReady, setMapReady] = useState(false);
 
-  const NODE_RED_URL = 'http://localhost:1880'; 
+  const NODE_RED_URL = "http://localhost:1880";
 
   useEffect(() => {
     if (address) {
@@ -28,7 +28,7 @@ function ZipCodeSearcher() {
     setAddress(null);
     setMapReady(false);
 
-    const cepLimpo = cepInput.replace(/\D/g, '');
+    const cepLimpo = cepInput.replace(/\D/g, "");
     if (cepLimpo.length !== 8) {
       setError("O CEP deve conter 8 dígitos.");
       setLoading(false);
@@ -44,17 +44,21 @@ function ZipCodeSearcher() {
         setError(null);
       }
     } catch (err) {
-      setError('Falha na comunicação com o servidor Node-RED.');
+      setError("Falha na comunicação com o servidor Node-RED.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="zip-code-searcher">
-      <div className="search-container">
-        <h1>Buscador de CEP</h1>
-        <form onSubmit={handleSearch}>
+ return (
+  <div className="zip-code-searcher">
+    <div className="search-container">
+      {/* Título usando uma classe específica, sem trocar a tag */}
+      <h2>Buscador de CEP</h2>
+
+      {/* Não mexo na lógica: só envolvo input+botão em uma div.search-bar */}
+      <form onSubmit={handleSearch} className="zip-form">
+        <div className="search-bar search-bar-cep">
           <input
             type="text"
             value={cepInput}
@@ -63,36 +67,49 @@ function ZipCodeSearcher() {
             maxLength="9"
           />
           <button type="submit" disabled={loading || cepInput.length === 0}>
-            {loading ? 'Buscando...' : 'Buscar CEP'}
+            {loading ? "Buscando..." : "Buscar CEP"}
           </button>
-        </form>
-        {error && <p className="error">{error}</p>}
+        </div>
+      </form>
 
-        {address && (
-          <div className="address-info">
-            <h3>Resultado para {address.cep}</h3>
-            <p><strong>Estado:</strong> {address.estado}</p>
-            <p><strong>Cidade:</strong> {address.cidade}</p>
-            <p><strong>Bairro:</strong> {address.bairro}</p>
-            <p><strong>Logradouro:</strong> {address.logradouro}</p>
+      {error && <p className="error">{error}</p>}
 
-            <div className="map-container">
-              {!mapReady && <p>Carregando mapa...</p>}
-              {mapReady && (
-                <iframe
-                  width="100%"
-                  height="300"
-                  style={{ border: '0' }}
-                  src={`https://maps.google.com/?q=${encodeURIComponent(`${address.logradouro}, ${address.bairro}, ${address.cidade}, ${address.estado}`)}&output=embed`}
-                  title="Localização no Google Maps"
-                ></iframe>
-              )}
-            </div>
+      {address && (
+        <div className="address-info">
+          <h3>Resultado para {address.cep}</h3>
+          <p>
+            <strong>Estado:</strong> {address.estado}
+          </p>
+          <p>
+            <strong>Cidade:</strong> {address.cidade}
+          </p>
+          <p>
+            <strong>Bairro:</strong> {address.bairro}
+          </p>
+          <p>
+            <strong>Logradouro:</strong> {address.logradouro}
+          </p>
+
+          <div className="map-container">
+            {!mapReady && <p>Carregando mapa...</p>}
+            {mapReady && (
+              <iframe
+                width="100%"
+                height="300"
+                style={{ border: "0" }}
+                src={`https://maps.google.com/?q=${encodeURIComponent(
+                  `${address.logradouro}, ${address.bairro}, ${address.cidade}, ${address.estado}`
+                )}&output=embed`}
+                title="Localização no Google Maps"
+              ></iframe>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
+
 }
 
 export default ZipCodeSearcher;
